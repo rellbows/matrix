@@ -22,6 +22,8 @@ function dims(){
 	elif [ "$#" = "1" ]
 	then
 		dataFilePath=$1
+	else
+		echo "Arugment count cannot be greater than 1." >&2 && exit 1
 	fi
 	
 	# declare vars 

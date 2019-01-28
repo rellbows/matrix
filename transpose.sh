@@ -16,6 +16,8 @@ function transpose(){
 	elif [ "$#" = "1" ]
 	then
 		dataFilePath=$1
+	else
+		echo "Argument count cannot be greater than 1." >&2 && exit 1
 	fi
 
 	# testing

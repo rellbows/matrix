@@ -1,10 +1,10 @@
 #!/bin/bash
 # sum function for the matrix script
 
-function sum(){
+function add(){
 
 	# check to ensure 2 args passed
-	[ $# -ne 2 ] && echo "invalid number of arguments" >&2 && exit 1
+	[ $# -ne 2 ] && echo "Arugment count must be 2." >&2 && exit 1
 
 	# get the filenames
 	dataFilePath1=$1
