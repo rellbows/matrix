@@ -59,6 +59,10 @@ function dims(){
 	then
 		rm -f "$dataFilePath"
 	fi
+
+	# successful!
+	exit 0
 }
 
 "$@"
+"$?"

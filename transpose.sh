@@ -47,7 +47,10 @@ function transpose(){
 	if [ "$#" = 0 ]
 	then
 		rm -f "$dataFilePath"
-	fi	
+	fi
+
+	# successful!
+	exit 0
 }
 
 "$@"
