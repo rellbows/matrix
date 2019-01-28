@@ -54,3 +54,4 @@ function transpose(){
 }
 
 "$@"
+"$?"
