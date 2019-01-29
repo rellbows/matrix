@@ -1,0 +1,462 @@
+#!/bin/bash
+
+# header here...
+
+function add(){
+
+  # NAME
+  #   add - adds two matrices together
+  # SYNOPSIS
+  #   generate MATRIX1FILE MATRIX2FILE
+  # DESCRIPTION
+  #   Outputs the sum of the addition of matrices in MATRIX1FILE and MATRIX2FILe.
+  # AUTHOR
+  #   Written by Ryan Ellis (ellisry@oregonstate.edu)
+
+	# check to ensure 2 args passed
+	[ $# -ne 2 ] && echo "Arugment count must be 2." >&2 && exit 1
+
+	# get the filenames
+	dataFilePath1=$1
+	dataFilePath2=$2
+
+	# validate matrix files is readable
+	# citation: used below SO link for reference
+	# https://askubuntu.com/questions/558977/checking-for-a-file-and-whether-it-is-readable-and-writable
+	if [ ! -r $dataFilePath1 ] || [ ! -r $dataFilePath2 ]; then
+		echo "File(s) not readable." >&2 && exit 1	
+	fi
+
+	# vars to hold size of both matrices
+	rowNum1=0
+	rowNum2=0
+	colNum1=0
+	colNum2=0
+
+	# check dims of both matrices
+	# first, reset internal field separator var (IFS)
+	while IFS=$'\n' read -r line;
+	do
+		# increase row counter
+		rowNum1=$(expr "$rowNum1" + 1)
+
+		# iterate across the first row
+		# don't need to check additional rows bc
+		# we have already verified matrix is valid
+		if [ "$rowNum1" = "1"  ]
+		then
+			for data in $line;
+			do
+				
+				# increase column counter
+				colNum1=$(expr "$colNum1" + 1)
+
+			done
+		fi
+
+	done < "$dataFilePath1"
+	
+	# second matrix
+	while IFS=$'\n' read -r line;
+	do
+		# increase row counter
+		rowNum2=$(expr "$rowNum2" + 1)
+
+		# iterate across the first row
+		# don't need to check additional rows bc
+		# we have already verified matrix is valid
+		if [ "$rowNum2" = "1"  ]
+		then
+			for data in $line;
+			do
+				
+				# increase column counter
+				colNum2=$(expr "$colNum2" + 1)
+
+			done
+		fi
+
+	done < "$dataFilePath2"
+	
+	#evaluate matrice dims
+	if [ "$rowNum1" -ne "$rowNum2" ] || [ "$colNum1" -ne "$colNum2" ] ; then
+		echo "Matrices dims. do not match!">&2
+		exit 1
+	fi	
+
+	# open up both files and iterate over them to get sums
+	# used below links for ref. about using multiple file
+	# descriptors to read two files in one loop
+	#https://unix.stackexchange.com/questions/26601/how-to-read-from-two-input-files-using-while-loop 	
+	# https://en.wikipedia.org/wiki/File_descriptor
+	while read -a line1<&3 && read -a line2<&4; do
+		i=0
+		while [ $i -lt $colNum1 ]; do
+			sum=$( expr ${line1[$i]} + ${line2[$i]} )
+			printf '%d' "$sum"
+			if [ $i -lt $(expr $colNum1 - 1) ]; then
+				printf '\t' 
+			elif [ $i -eq $(expr $colNum1 - 1 ) ]; then
+				printf '\n'
+			fi
+			i=$( expr $i + 1 )
+			sum=0
+		done
+	done 3<$dataFilePath1 4<$dataFilePath2
+	
+	return 0
+}
+
+function dims(){
+
+  # NAME
+  #   dims - print outs the size of the matrix 
+  # SYNOPSIS
+  #   dims MATRIXFILE 
+  # DESCRIPTION
+  #   Prints out the size of the matrix in the form of ROW COLUMN.
+  # AUTHOR
+  #   Written by Ryan Ellis (ellisry@oregonstate.edu)
+
+	# get file contents into stdin using this can get either
+	# when file is piped in or if passed as argument
+	dataFilePath="dataFile$$"
+
+	if [ "$#" = "0" ]
+	then
+		cat > "$dataFilePath"
+	elif [ "$#" = "1" ]
+	then
+		dataFilePath=$1
+	else
+		echo "Arugment count cannot be greater than 1." >&2 && exit 1
+	fi
+
+	# validate matrix files is readable
+	# citation: used below SO link for reference
+	# https://askubuntu.com/questions/558977/checking-for-a-file-and-whether-it-is-readable-and-writable
+	if [ ! -r $dataFilePath ]; then
+		echo "File(s) not readable." >&2 && exit 1	
+	fi
+
+	# declare vars 
+	rowNum=0
+	colNum=0	
+
+	# iterate thru whole matrix
+	# first, reset internal field separator var (IFS)
+	while IFS=$'\n' read -r line;
+	do
+		# increase row counter
+		rowNum=$(expr "$rowNum" + 1)
+
+		# iterate across the first row
+		# don't need to check additional rows bc
+		# we have already verified matrix is valid
+		if [ "$rowNum" = "1"  ]
+		then
+			for data in $line;
+			do
+				
+				# increase column counter
+				colNum=$(expr "$colNum" + 1)
+
+			done
+		fi
+
+	done < "$dataFilePath"
+
+	# output row and column numbers
+	echo "$rowNum $colNum"
+
+	# clean up temp file if piped in
+	if [ "$#" = 0 ]
+	then
+		rm -f "$dataFilePath"
+	fi
+
+	# successful!
+	return 0
+}
+
+function mean(){
+
+  # NAME
+  #   mean - prints out the mean of a matrix 
+  # SYNOPSIS
+  #   mean MATRIXFILE 
+  # DESCRIPTION
+  #   Prints out the mean of a MXN matrix as 1XN matrix.
+  # AUTHOR
+  #   Written by Ryan Ellis (ellisry@oregonstate.edu)
+
+
+	# declare vars
+	dataFilePath="dataFile$$" # filename
+
+	# get filename either thru piping or arg
+	if [ "$#" = "0" ]
+	then
+		cat > "$dataFilePath"
+	elif [ "$#" = "1" ]
+	then
+		dataFilePath=$1
+	else
+		echo "Argument count cannot be greater than 1." >&2 && exit 1
+	fi
+
+	# validate matrix files is readable
+	# citation: used below SO link for reference
+	# https://askubuntu.com/questions/558977/checking-for-a-file-and-whether-it-is-readable-and-writable
+	if [ ! -r $dataFilePath ]; then
+		echo "File(s) not readable." >&2 && exit 1	
+	fi
+
+
+
+	# get row and col numbers
+	numRow=0
+	numCol=0
+	while IFS=$'\n' read -r line; do
+		numRow=$( expr $numRow + 1 )
+		if [ $numRow -eq 1 ]; then
+			for data in $line; do
+				numCol=$( expr $numCol + 1 )
+			done
+		fi
+	done <"$dataFilePath"
+
+	# iterate over the columns and flip them
+	i=1 # counter
+	sum=0 # tracks sum for columns
+	while [ $i -lt $(expr "$numCol" + 1) ]; do
+		myvar=$(cut -f $i $dataFilePath | tr '\n' '\t')
+		myvar="${myvar%?}"
+		for data in $myvar; do
+			sum=$( expr $sum + $data )
+		done
+	
+		mean=$(( ( $sum + ( $numRow / 2 ) * ( ( $sum > 0 ) * 2 - 1 ) ) / $numRow ))
+
+		# print mean for each col 
+		printf '%d' " $mean"
+
+		# if more cols to go, print \t
+		if [ $i -lt $numCol ]; then
+			printf '\t'
+		# otherwise, print \n
+		else
+			printf '\n'
+		fi
+	
+		sum=0 # reset sum for next column
+
+		i=$(expr "$i" + 1) # increase counter
+	done
+
+	# remove temp file if piped in
+	if [ "$#" = 0 ]
+	then
+		rm -f "$dataFilePath"
+	fi
+
+
+	# success!
+	return 0
+}
+
+function multiply(){
+
+  # NAME
+  #   multiply - prints out the product of two matrices. 
+  # SYNOPSIS
+  #   multiply MATRIX1FILE MATRIX2FILE
+  # DESCRIPTION
+  #   Prints out the product of a MXN matrix and a NXP matrix
+  #   as a MXP matrix.
+  # AUTHOR
+  #   Written by Ryan Ellis (ellisry@oregonstate.edu)
+
+
+	# check to ensure 2 args passed
+	[ $# -ne 2 ] && echo "Arugment count must be 2." >&2 && exit 1
+
+	# get the filenames
+	dataFilePath1=$1
+	dataFilePath2=$2
+
+	# validate matrix files is readable
+	# citation: used below SO link for reference
+	# https://askubuntu.com/questions/558977/checking-for-a-file-and-whether-it-is-readable-and-writable
+	if [ ! -r $dataFilePath1 ] || [ ! -r $dataFilePath2 ]; then
+		echo "File(s) not readable." >&2 && exit 1	
+	fi
+
+	# vars to hold size of both matrices
+	rowNum1=0
+	rowNum2=0
+	colNum1=0
+	colNum2=0
+
+	# check dims of both matrices
+	# first, reset internal field separator var (IFS)
+	while IFS=$'\n' read -r line;
+	do
+		# increase row counter
+		rowNum1=$(expr "$rowNum1" + 1)
+
+		# iterate across the first row
+		# don't need to check additional rows bc
+		# we have already verified matrix is valid
+		if [ "$rowNum1" = "1"  ]
+		then
+			for data in $line;
+			do
+				
+				# increase column counter
+				colNum1=$(expr "$colNum1" + 1)
+
+			done
+		fi
+
+	done < "$dataFilePath1"
+	
+	# second matrix
+	while IFS=$'\n' read -r line;
+	do
+		# increase row counter
+		rowNum2=$(expr "$rowNum2" + 1)
+
+		# iterate across the first row
+		# don't need to check additional rows bc
+		# we have already verified matrix is valid
+		if [ "$rowNum2" = "1"  ]
+		then
+			for data in $line;
+			do
+				
+				# increase column counter
+				colNum2=$(expr "$colNum2" + 1)
+
+			done
+		fi
+
+	done < "$dataFilePath2"
+
+	#evaluate matrice dims
+	if [ "$colNum1" -ne "$rowNum2" ]; then
+		echo "Matrices dims. do not match!">&2
+		exit 1
+	fi	
+
+	# transpose cols from matrix 2 and load into a temp file
+	transMatrix2="transMatrix2$$"
+	transpose $dataFilePath2 > $transMatrix2 
+
+	# testing
+	while read -a line1<&3; do
+		j=1 # counter for printing \t \n 
+		while read -a line2<&4; do
+
+			i=0 # traveler for multiplicaton/summation
+			sum=0 # keeps running total of sum of the products for each matrix 1 / matrix 2 row/line
+
+			while [ $i -lt $colNum1 ]; do
+				product=$(( ${line1[$i]} * ${line2[$i]} ))
+				sum=$(( $sum + $product ))
+				i=$(( $i + 1 ))
+			done
+
+			# print out product/summation
+			printf '%d' "$sum"
+	
+			# output \t if more #'s in matrix 1 row to go
+			if [ $j -lt $colNum2 ]; then
+				printf '\t'
+			# output \n if end of matrix 1 row
+			elif [ $j -eq $colNum2 ]; then
+				printf '\n'
+			fi
+			
+			# increase print counter
+			j=$(( $j + 1 ))
+			
+		done 4<$transMatrix2	
+	done 3<$dataFilePath1
+	
+	# cleanup temp file
+	rm -f $transMatrix2
+
+	return 0
+}
+
+function transpose(){
+
+  # NAME
+  #   transpose - prints out the transposition of a matrix. 
+  # SYNOPSIS
+  #   transpose MATRIXFILE
+  # DESCRIPTION
+  #   Prints out the transpostion of a MXN matrix as a NXN matrix. 
+  # AUTHOR
+  #   Written by Ryan Ellis (ellisry@oregonstate.edu)
+
+
+	# declare vars
+	dataFilePath="dataFile$$" # filename
+	i=1 # iterator for cut loop
+	colNum=0 # num of columns in matrix	
+
+	# get filename either thru piping or arg
+	if [ "$#" = "0" ]
+	then
+		cat > "$dataFilePath"
+	elif [ "$#" = "1" ]
+	then
+		dataFilePath=$1
+	else
+		echo "Argument count cannot be greater than 1." >&2 && exit 1
+	fi
+
+	# validate matrix file is readable
+	# citation: used below SO link for reference
+	# https://askubuntu.com/questions/558977/checking-for-a-file-and-whether-it-is-readable-and-writable
+	if [ ! -r $dataFilePath ]; then
+		echo "File not readable." >&2 && exit 1	
+	fi
+
+	read -r line<$dataFilePath 
+
+	# get amount of columns	
+	for data in $line;
+	do
+		# increase column counter
+		colNum=$(expr "$colNum" + 1)
+	done
+		
+	# iterate over the columns and flip them
+	while [ $i -lt $(expr "$colNum" + 1) ]; do
+		myvar=$(cut -f $i $dataFilePath | tr '\n' '\t')
+		echo "${myvar%?}"
+		i=$(expr "$i" + 1) # increase counter
+	done
+
+	# remove temp file if piped in
+	if [ "$#" = 0 ]
+	then
+		rm -f "$dataFilePath"
+	fi
+
+	# successful!
+	return 0
+}
+
+# check to ensure command is valid
+# citation: used below for invalid command checking
+# https://www.cyberciti.biz/faq/bash-shell-scripting-find-out-if-function-definedornot/
+if [[ `type -t $1` = "function" ]]; then
+	$1 "${@:2}"
+else
+	echo ""$1" is an invalid command" >&2 && exit 1
+fi
+exit 0
