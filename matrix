@@ -1,6 +1,14 @@
 #!/bin/bash
 
-# header here...
+# NAME
+#   matrix - performs basic matrice math
+# SYNOPSIS
+#   matrix COMMAND FILE FILE2( if function req. two matrices)
+# DESCRIPTION
+#   performs addition, dimension checking, mean, multiply, and transposition
+
+# AUTHOR
+#   Written by Ryan Ellis (ellisry@oregonstate.edu)
 
 function add(){
 
