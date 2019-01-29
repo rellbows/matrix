@@ -67,22 +67,14 @@ function add(){
 		exit 1
 	fi	
 
-	# testing
-	# printf 'matrix 1 dims: %d %d\n' "$rowNum1" "$colNum1"
-	# printf 'matrix 2 dims: %d %d\n' "$rowNum2" "$colNum2"
-
 	# open up both files and iterate over them to get sums
 	# used below links for ref. about using multiple file
 	# descriptors to read two files in one loop
 	#https://unix.stackexchange.com/questions/26601/how-to-read-from-two-input-files-using-while-loop 	
 	# https://en.wikipedia.org/wiki/File_descriptor
 	while read -a line1<&3 && read -a line2<&4; do
-		#echo $line1
-		#echo $line2
 		i=0
 		while [ $i -lt $colNum1 ]; do
-			# testing
-			#printf 'line1[%d]: %d\n' "$i" "${line1[$i]}"
 			sum=$( expr ${line1[$i]} + ${line2[$i]} )
 			printf '%d' "$sum"
 			if [ $i -lt $(expr $colNum1 - 1) ]; then
@@ -95,9 +87,6 @@ function add(){
 		done
 	done 3<$dataFilePath1 4<$dataFilePath2
 	
-	# cleanup the temp files
-	rm -f temp1 temp2
-
 	exit 0
 }
 

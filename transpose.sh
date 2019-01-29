@@ -20,13 +20,7 @@ function transpose(){
 		echo "Argument count cannot be greater than 1." >&2 && exit 1
 	fi
 
-	# testing
-	echo "$dataFilePath"
-
 	read -r line<$dataFilePath 
-
-	# testing
-	echo "$line"
 
 	# get amount of columns	
 	for data in $line;
@@ -35,9 +29,6 @@ function transpose(){
 		colNum=$(expr "$colNum" + 1)
 	done
 		
-	# testing
-	printf 'col num: %d\n' "$colNum"
-
 	# iterate over the columns and flip them
 	while [ $i -lt $(expr "$colNum" + 1) ]; do
 		myvar=$(cut -f $i $dataFilePath | tr '\n' '\t')
