@@ -87,8 +87,8 @@ function add(){
 		done
 	done 3<$dataFilePath1 4<$dataFilePath2
 	
-	exit 0
+	return 0
 }
 
 "$@"
-"$?"
+exit 0

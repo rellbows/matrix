@@ -28,11 +28,6 @@ function mean(){
 		fi
 	done <"$dataFilePath"
 
-	# testing
-	printf 'numRow: %d\n' "$numRow"
-	printf 'numCol: %d\n' "$numCol"
-
-
 	# iterate over the columns and flip them
 	i=1 # counter
 	sum=0 # tracks sum for columns
@@ -45,8 +40,16 @@ function mean(){
 	
 		mean=$(( ( $sum + ( $numRow / 2 ) * ( ( $sum > 0 ) * 2 - 1 ) ) / $numRow ))
 
-		# testing
-		echo $mean
+		# print mean for each col 
+		printf '%d' " $mean"
+
+		# if more cols to go, print \t
+		if [ $i -lt $numCol ]; then
+			printf '\t'
+		# otherwise, print \n
+		else
+			printf '\n'
+		fi
 	
 		sum=0 # reset sum for next column
 
@@ -61,8 +64,8 @@ function mean(){
 
 
 	# success!
-	exit 0
+	return 0
 }
 
 "$@"
-"$?"
+exit 0

@@ -63,8 +63,8 @@ function dims(){
 	fi
 
 	# successful!
-	exit 0
+	return 0
 }
 
 "$@"
-"$?"
+exit 0
